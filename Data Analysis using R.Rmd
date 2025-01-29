@@ -1,0 +1,285 @@
+---
+title: "Data Analysis"
+author: "Sushmita Upreti"
+date: "2025-01-29"
+output: html_document
+---
+
+Let's load some data.
+
+```{r}
+data <- read.csv("C:/Users/sushm/OneDrive/Desktop/dataset for analysis.csv")
+
+```
+
+```{r}
+head(data)
+```
+```{r}
+# Load necessary packages
+library(ggplot2)   # For data visualization
+library(dplyr)     # For data manipulation
+library(readr)     # For reading CSV files
+```
+# Let's display the sturcture of the dataset
+
+```{r}
+str(data)
+```
+# The numerical variables include: Age, Income, Spending_Score
+# the categorical variables include: City_Type, Education_Level, Product_Purchase
+
+
+```{r}
+summary(data)
+```
+
+## Looking for missing values
+
+```{r}
+sum(is.na(data))
+```
+# There seems to be no missing values in the entire data set and it looks clean.
+
+# Transforming categorical variables to factors
+
+```{r}
+data$City_Type <- as.factor(data$City_Type)
+data$Education_Level <- as.factor(data$Education_Level)
+data$Product_Purchase <- factor(data$Product_Purchase, levels = c(0,1), labels =
+c("No","Yes"))
+```
+# Let's check out the structure now.
+
+```{r}
+str(data)
+```
+#The categorical variables have successfully been transformed into factors, the “Education_Level” has four
+levels (“Bachelor’s, “High School”, “Master’s”, “PhD”) and the “City_Type” variable has three levels
+(“Rural”, “Suburban”, “Urban”). The “Product_Purchase” variable has also been changed into factor
+variables with two levels (“No”, “Yes”).
+
+#Let's create a frequency table for overview
+
+```{r}
+table(data$Education_Level)
+table(data$City_Type)
+table(data$Product_Purchase)
+```
+# In terms of educational level, PhD is the least studied degree, followed by Master's. The urban area
+appears to have the highest population density. Finally, there appears to be more people who have not
+purchased any products (61) than those who have (39).
+
+# Let's create a histogram for income distribution
+
+```{r}
+options(scipen = 999)
+```
+
+```{r}
+ggplot(data, aes(x = Income)) +
+geom_histogram(binwidth = 15000, color = "black", fill = "turquoise3", alpha
+= 0.7) +
+labs(
+ title = "Income Distribution of individuals",
+ subtitle = "Understanding the spread of income",
+ x = "Income",
+ y = "Number of Individuals"
+ )+
+theme(
+ plot.title = element_text(hjust = 0.5),
+ plot.subtitle = element_text(hjust = 0.5)
+ )
+```
+# The histogram does not appear to be excessively skewed to the left or right; instead, it appears to be
+roughly balanced. The majority of people make between $40,000 and $70,000 each year, with the highest
+earning $60,000. There appear to be fewer people in the higher income bracket (above $80.000).
+
+# Scatterplot for Age vs. Income with a trend line
+
+```{r}
+ggplot(data, aes(x = Age, y = Income))+
+ geom_point(aes(color = City_Type), size = 3)+
+ geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "solid")+
+ theme_minimal()+
+ labs(
+ title = "Age vs Income",
+ subtitle = "Exploring the relationship between age & income with a
+regression trend line",
+ x = "Age",
+ y = "Income"
+ )+
+ scale_color_manual(values = c("Urban" = "palegreen", "Suburban" = "salmon2",
+"Rural" = "skyblue3"))+
+ theme(
+ plot.title = element_text(hjust = 0.5),
+ plot.subtitle = element_text(hjust = 0.5)
+ )
+```
+# Key Insights:
+# - The upward sloping trend line indicates a positive correlation between age and income.
+# - Urban residents (green) have the highest income range ($25K - $100K) compared to rural and suburban.
+# - The maximum income for rural and suburban individuals is around $75K, mostly below the trend line.
+# - Younger individuals (below 30) tend to earn less than those 50 and older.
+
+# Box plot showing spending scores by education level
+
+```{r}
+ggplot(data, aes(x = Education_Level, y = Spending_Score, fill = Education_Level))+
+ geom_boxplot(alpha = 0.6, color = "black")+
+ labs(
+ title = "Spending Score by Education Level",
+ subtitle = "Spending variations across different education
+levels",
+ x = "Education Level",
+ y = "Spending Score"
+ )+
+ theme_minimal()+
+ theme(
+ plot.title = element_text(hjust = 0.5, size = 16),
+ plot.subtitle = element_text(hjust = 0.5, size = 11.5),
+ axis.text.x = element_text(angle = 0, hjust = 0.5),
+ legend.position = "right"
+ )+
+ scale_fill_manual(values = c(
+ "Bachelor's" = "peachpuff3",
+ "High School" = "seagreen",
+ "Master's" = "plum4",
+ "PhD" = "skyblue"
+ ))
+```
+# Key Insights:
+# - Individuals with a PhD tend to have lower spending scores, with a median around 25, 
+#   suggesting they may be more conservative in their purchasing habits.
+# - The population with a high school degree has the highest spending scores, with a median slightly above 50.
+# - The median spending scores of Master's and High School groups are similar, 
+#   but those with a Master's degree show higher variability in purchasing behavior.
+
+
+# Implementing the K-Nearest Neighbour Model to predict the Product_Purchase column using the features Age, Income, Spending_Score, City_Type
+
+```{r}
+set.seed(123)
+```
+# Splitting the data into training and testting sets (70% training and 30% testing)
+
+```{r}
+library(caret)
+library(class)
+library(rpart)
+library(rpart.plot)
+```
+```{r}
+trainIndex <- createDataPartition(data$Product_Purchase, p = 0.7,
+                                  list = FALSE,
+                                  times = 1)
+train_data <- data[trainIndex, ]
+test_data <- data[-trainIndex, ]
+```
+# Let's check the to get the dimensions (number of rows and columns) of a dataframe
+
+```{r}
+dim(train_data)
+dim(test_data)
+```
+# The training data now has 71 observations with 6 variables.
+# The test data now has 29 observations with 6 variables.
+
+# Now let's scale the data
+
+
+```{r}
+library(caret)
+```
+
+```{r}
+preprocess <- preProcess(train_data[, c("Age", "Income", "Spending_Score")], 
+                         method = c("center", "scale")) 
+```
+
+```{r}
+str(data)
+```
+# Now training with model KNN = 5
+
+```{R}
+knn_model <- train(Product_Purchase ~ Age + Income + Spending_Score + City_Type,
+                   data = train_data_scaled,
+                   method = "knn",
+                   tuneGrid = data.frame(k = 5))
+```
+
+# Making predictions using KNN model
+
+```{r}
+predictions <- predict(knn_model, newdata = test_data_scaled)
+```
+# comparing these predctions to the actual values using confusion matrix
+
+```{r}
+conf_matrix <- confusionMatrix(predictions, test_data_scaled$Product_Purchase)
+print(conf_matrix)
+```
+# 15 people were correctly predicted as "No" (True Negatives, TN).
+# 3 people were incorrectly predicted as "Yes" when they were actually "No" (False Positives, FP).
+# 8 people were incorrectly predicted as "No" when they were actually "Yes" (False Negatives, FN).
+# 3 people were correctly predicted as "Yes" (True Positives, TP).
+
+Note: A more detailed explanation is on the report.
+
+# Building a regression model to predict income using the features Age, Spending_Score, City_Type
+
+```{r}
+lm_model <- lm(Income ~ Age + Spending_Score + City_Type, data = train_data)
+summary(lm_model)
+```
+# Key Takeaways:
+
+#- Age has the strongest positive effect on Income (each additional year adds ~$1000).
+#- Living in an urban area significantly increases income (~$19,301 more than Rural).
+#- Spending Score has a weakly positive effect on income, but not very strong.
+#- Living in a Suburban area doesn't significantly impact income compared to Rural.
+
+# Identifying additional metrics: Mean Squared Error
+
+```{r}
+predictions <- predict(lm_model, newdata = test_data)
+```
+
+```{r}
+mse <- mean((test_data$Income - predictions)^2)
+```
+
+```{r}
+print(mse)
+```
+# Identifying Root mean squared Error
+
+```{r}
+rmse <- sqrt(mse)
+print(rmse)
+```
+# If typical Income values in your dataset are much larger (e.g., $50,000+), then an error of $6,213 may be acceptable.
+# If  Income values are smaller (e.g., $10,000–$20,000 range), then RMSE is too high, meaning this model isn't accurate.
+
+Now let's build a classification tree
+
+```{R}
+tree_model <- rpart(Product_Purchase ~ Age + Income + Education_Level + City_Type + Spending_Score,
+                    data = data,
+                    method = "class",
+                    control = rpart.control(cp = 0.01)) 
+```
+
+# Visualizing the model using the initial cp value pf 0.01
+
+```{r}
+rpart.plot(tree_model, type = 2, extra = 104, under = TRUE, tweak = 1.2,
+           main = "Classification Tree for Product Purchase")
+```
+# Key Takeaways:
+# Income is the most important factor in determining product purchase.
+# Higher income → Higher chance of purchasing.
+# Younger individuals with moderate income are less likely to purchase.
+# Older individuals (Age ≥ 0.82) and higher income have the highest purchase rate.
+
