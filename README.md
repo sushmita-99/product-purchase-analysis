@@ -14,7 +14,12 @@ This project explores customer behavior and product purchases using **R Markdown
 1. Open **`Data analysis using R.Rmd`** in **RStudio**  
 2. Make sure **`dataset for analysis.csv`** is in the same directory  
 3. Run all chunks or **knit to HTML/PDF**  
-4. View the **decision tree plot** and insights  
+4. View the **decision tree plot** and insights
+
+## Click on the follwoing files to view the plots
+Boxplot.png
+Histogram.png
+Scatterplot.png
 
 ## 📌 Dependencies  
 Make sure you have these R packages installed:  
